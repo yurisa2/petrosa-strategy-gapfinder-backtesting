@@ -2,6 +2,7 @@ import pymongo
 import pandas as pd
 import os
 
+
 def get_data(ticker, period, limit=999999999):
 
     if(period == '5m'):
@@ -12,7 +13,6 @@ def get_data(ticker, period, limit=999999999):
         suffix = 'm30'
     if(period == '1h'):
         suffix = 'h1'
-
 
     client = pymongo.MongoClient(
                 os.getenv(
@@ -28,6 +28,7 @@ def get_data(ticker, period, limit=999999999):
     results_list = list(results)
 
     data_df = pd.DataFrame(results_list)
+
     data_df = data_df.sort_values("datetime")
 
     data_df = data_df.rename(columns={"open": "Open",
