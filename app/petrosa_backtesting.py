@@ -5,6 +5,7 @@ from backtesting.lib import plot_heatmaps
 import pymongo
 import os
 import json
+import datetime
 
 
 class bb_backtest(Strategy):
@@ -67,8 +68,8 @@ class bb_backtest(Strategy):
 
 def run_backtest(symbol, test_period):
 
-    data = get_data.get_data(symbol, '5m')
-    main_data = get_data.get_data(symbol, test_period)
+    data = get_data.get_data(symbol, '5m',100)
+    main_data = get_data.get_data(symbol, test_period, 16)
 
     strat = bb_backtest
     strat.main_data = main_data
@@ -102,18 +103,50 @@ def run_backtest(symbol, test_period):
                 os.getenv(
                     'MONGO_URI', 'mongodb://root:wUx3uQRBC8@localhost:27017'),
                 readPreference='secondaryPreferred',
-                appname='petrosa-nosql-crypto'
+                appname='petrosa-strategy-backtest-simple-gap-finder'
                                         )
 
     heatmap = heatmap.dropna().sort_values().iloc[-10:]
     new_hm = {}
     new_hm['heatmap'] = heatmap
+    new_hm['insert_timestamp'] = datetime.datetime.now()
+    new_hm['strategy'] = 'simple_gap_finder'
+    new_hm['period'] = test_period
+    new_hm['symbol'] = symbol
 
     doc = json.dumps({**stats._strategy._params, **stats, **new_hm}, default=str)
     doc = json.loads(doc)
-    client.petrosa_crypto['backtest_results'].insert_one(doc)
 
 
-run_backtest('BTCBUSD', '30m')
+    client.petrosa_crypto['backtest_results'].update_one(
+                                            {"strategy": "simple_gap_finder",
+                                             "symbol": symbol,
+                                             "period": test_period
+                                            }, {"$set": doc}, upsert=True)
+
+
+def continuous_run():
+    client = pymongo.MongoClient(
+                os.getenv(
+                    'MONGO_URI', 'mongodb://root:wUx3uQRBC8@localhost:27017'),
+                readPreference='secondaryPreferred',
+                appname='petrosa-strategy-backtest-simple-gap-finder'
+                                        )
+    while True:
+        try:
+            params = client.petrosa_crypto['backtest_controller'].find_one({"status": 0, "strategy": "simple_gap_finder"})
+            client.petrosa_crypto['backtest_controller'].update_one(params, {"$set": {"status":1}})
+
+
+            print('Running backtest for simple_gap_finder on: ', params)
+            run_backtest(params['symbol'], params['period'])
+
+            client.petrosa_crypto['backtest_controller'].update_one({"_id": params['_id']}, {"$set": {"status":2}})
+
+            print('Finished ', params)
+
+            pass
+        except Exception as e:
+            print('ERROR MOFO ', e)
 
 # bt.run()

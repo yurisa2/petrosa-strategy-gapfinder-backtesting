@@ -1,6 +1,5 @@
 import os
-from app import sender
-from app import binance_backfiller
+from app import petrosa_backtesting
 from datetime import datetime
 import threading
 
@@ -11,11 +10,7 @@ app = Flask(__name__)
 
 start_datetime = datetime.utcnow()
 
-sender = sender.PETROSASender('binance_socket_raw')
-
-backfiller = binance_backfiller.BinanceBackfiller(sender)
-
-threading.Thread(target=backfiller.continuous_run).start()
+threading.Thread(target=petrosa_backtesting.continuous_run).start()
 
 
 @app.route("/")
@@ -29,7 +24,6 @@ def queues():
     queues = {}
 
     queues['start_datetime'] = start_datetime
-    queues['total_sent'] = sender.total_sent
 
     return queues, 200
 

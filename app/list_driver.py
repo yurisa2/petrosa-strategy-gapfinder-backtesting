@@ -29,3 +29,9 @@ for symbol in col_symbols:
         row = {}
         row['symbol'] = symbol['_id']
         row['period'] = period
+        row['strategy'] = 'simple_gap_finder'
+        row['status'] = 0
+        full_bt_list.append(row)
+        print(row)
+
+client.petrosa_crypto['backtest_controller'].insert_many(full_bt_list)
