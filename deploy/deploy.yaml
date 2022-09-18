@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petrosa-backfiller-binance-deploy
+  namespace: petrosa-apps
+  labels:
+    app: petrosa-backfiller-binance-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: petrosa-backfiller-binance
+  template:
+    metadata:
+      labels:
+        app: petrosa-backfiller-binance
+    spec:
+      containers:
+      - name: petrosa-backfiller-binance
+        image: yurisa2/petrosa-backfiller-binance:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+          - name: VERSION
+            value: "0.0.7"
+          - name: KAFKA_ADDRESS
+            valueFrom:
+              secretKeyRef:
+                name: petrosa-socket-binance
+                key: KAFKA_ADDRESS
+                optional: false
+          - name: MONGO_URI
+            valueFrom:
+              secretKeyRef:
+                name: petrosa-apps-secret
+                key: MONGO_URI
+                optional: false
