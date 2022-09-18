@@ -2,14 +2,16 @@ import os
 from app import petrosa_backtesting
 from datetime import datetime
 import threading
-
-
+import time
 from flask import Flask
+import random
+
 
 app = Flask(__name__)
-
 start_datetime = datetime.utcnow()
 
+
+time.sleep(random.randint(1,150))
 threading.Thread(target=petrosa_backtesting.continuous_run).start()
 
 

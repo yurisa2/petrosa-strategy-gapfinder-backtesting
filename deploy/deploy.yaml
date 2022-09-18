@@ -1,35 +1,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: petrosa-backfiller-binance-deploy
+  name: petrosa-strategy-gapfinder-backtesting-deploy
   namespace: petrosa-apps
   labels:
-    app: petrosa-backfiller-binance-app
+    app: petrosa-strategy-gapfinder-backtesting-app
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
-      app: petrosa-backfiller-binance
+      app: petrosa-strategy-gapfinder-backtesting
   template:
     metadata:
       labels:
-        app: petrosa-backfiller-binance
+        app: petrosa-strategy-gapfinder-backtesting
     spec:
       containers:
-      - name: petrosa-backfiller-binance
-        image: yurisa2/petrosa-backfiller-binance:latest
+      - name: petrosa-strategy-gapfinder-backtesting
+        image: yurisa2/petrosa-strategy-gapfinder-backtesting:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
         env:
           - name: VERSION
-            value: "0.0.7"
-          - name: KAFKA_ADDRESS
-            valueFrom:
-              secretKeyRef:
-                name: petrosa-socket-binance
-                key: KAFKA_ADDRESS
-                optional: false
+            value: "0.0.1"
           - name: MONGO_URI
             valueFrom:
               secretKeyRef:

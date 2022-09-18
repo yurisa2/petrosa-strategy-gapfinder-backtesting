@@ -68,8 +68,8 @@ class bb_backtest(Strategy):
 
 def run_backtest(symbol, test_period):
 
-    data = get_data.get_data(symbol, '5m',100)
-    main_data = get_data.get_data(symbol, test_period, 16)
+    data = get_data.get_data(symbol, '5m')
+    main_data = get_data.get_data(symbol, test_period)
 
     strat = bb_backtest
     strat.main_data = main_data
