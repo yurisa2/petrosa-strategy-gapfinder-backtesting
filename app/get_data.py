@@ -16,7 +16,7 @@ def get_data(ticker, period, limit=999999999):
 
     client = pymongo.MongoClient(
                 os.getenv(
-                    'MONGO_URI', 'mongodb://root:wUx3uQRBC8@localhost:27017'),
+                    'MONGO_URI', 'mongodb://root:QnjfRW7nl6@localhost:27017'),
                 readPreference='secondaryPreferred',
                 appname='petrosa-nosql-crypto'
                                         )
@@ -35,8 +35,7 @@ def get_data(ticker, period, limit=999999999):
                                       "high": "High",
                                       "low": "Low",
                                       "close": "Close"}
-                                      )
-
+                             )
 
     data_df = data_df.set_index('datetime')
 

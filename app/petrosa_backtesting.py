@@ -36,25 +36,23 @@ class bb_backtest(Strategy):
             return True
 
         if(self.buy_sl > self.buy_tp
-            or  self.sell_sl > self.sell_tp):
+                or self.sell_sl > self.sell_tp):
             return True
-
-
 
         try:
             if(self.data.index[-1] in self.main_data.index):
-                work_data = self.main_data.loc[self.main_data.index <= self.data.index[-1]]
+                work_data = self.main_data.loc[self.main_data.index
+                                               <= self.data.index[-1]]
                 # print('work_data', work_data.index[-1])
                 # print('main_Data', self.data.index[-1
 
-
                 # print(self.data.index[-1])
                 diff = ((work_data.Close[-1] / work_data.Close[-2])-1)*100
-                if diff < (-1 * self.sell_threshold) and self.sell_enabled:
+                if diff > (-1 * self.sell_threshold) and self.sell_enabled:
                     buy_sl = work_data.Close[-1] * (1 - (self.buy_sl / 100))
                     buy_tp = work_data.Close[-1] * (1 + (self.buy_tp / 100))
                     self.buy(sl=buy_sl, tp=buy_tp)
-                if diff > self.buy_threshold and self.buy_enabled:
+                if diff < self.buy_threshold and self.buy_enabled:
                     sell_sl = work_data.Close[-1] * (1 + (self.sell_sl / 100))
                     sell_tp = work_data.Close[-1] * (1 - (self.sell_tp / 100))
                     self.sell(sl=sell_sl, tp=sell_tp)
@@ -81,7 +79,6 @@ def run_backtest(symbol, test_period):
                     exclusive_orders=True,
                     cash=100000)
 
-
     stats, heatmap = bt.optimize(
         buy_sl=list(np.arange(0.2, 2, 1)),
         buy_tp=list(np.arange(0.2, 2, 1)),
@@ -98,10 +95,9 @@ def run_backtest(symbol, test_period):
         return_heatmap=True)
     # plot_heatmaps(heatmap, agg='mean')
 
-
     client = pymongo.MongoClient(
                 os.getenv(
-                    'MONGO_URI', 'mongodb://root:wUx3uQRBC8@localhost:27017'),
+                    'MONGO_URI', 'mongodb://root:QnjfRW7nl6@localhost:27017'),
                 readPreference='secondaryPreferred',
                 appname='petrosa-strategy-backtest-simple-gap-finder'
                                         )
@@ -114,34 +110,36 @@ def run_backtest(symbol, test_period):
     new_hm['period'] = test_period
     new_hm['symbol'] = symbol
 
-    doc = json.dumps({**stats._strategy._params, **stats, **new_hm}, default=str)
+    doc = json.dumps({**stats._strategy._params,
+                     ** stats, **new_hm}, default=str)
     doc = json.loads(doc)
-
 
     client.petrosa_crypto['backtest_results'].update_one(
                                             {"strategy": "simple_gap_finder",
                                              "symbol": symbol,
                                              "period": test_period
-                                            }, {"$set": doc}, upsert=True)
+                                             }, {"$set": doc}, upsert=True)
 
 
 def continuous_run():
     client = pymongo.MongoClient(
                 os.getenv(
-                    'MONGO_URI', 'mongodb://root:wUx3uQRBC8@localhost:27017'),
+                    'MONGO_URI', 'mongodb://root:QnjfRW7nl6@localhost:27017'),
                 readPreference='secondaryPreferred',
                 appname='petrosa-strategy-backtest-simple-gap-finder'
                                         )
     while True:
         try:
-            params = client.petrosa_crypto['backtest_controller'].find_one({"status": 0, "strategy": "simple_gap_finder"})
-            client.petrosa_crypto['backtest_controller'].update_one(params, {"$set": {"status":1}})
-
+            params = client.petrosa_crypto['backtest_controller'].find_one(
+                {"status": 0, "strategy": "simple_gap_finder"})
+            client.petrosa_crypto['backtest_controller'].update_one(
+                params, {"$set": {"status": 1}})
 
             print('Running backtest for simple_gap_finder on: ', params)
             run_backtest(params['symbol'], params['period'])
 
-            client.petrosa_crypto['backtest_controller'].update_one({"_id": params['_id']}, {"$set": {"status":2}})
+            client.petrosa_crypto['backtest_controller'].update_one(
+                {"_id": params['_id']}, {"$set": {"status": 2}})
 
             print('Finished ', params)
 
