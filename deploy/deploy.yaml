@@ -1,12 +1,11 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: petrosa-strategy-gapfinder-backtesting-deploy
   namespace: petrosa-apps
   labels:
     app: petrosa-strategy-gapfinder-backtesting-app
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: petrosa-strategy-gapfinder-backtesting
