@@ -6,6 +6,7 @@ import pymongo
 import os
 import json
 import datetime
+import time
 
 
 class bb_backtest(Strategy):
@@ -146,5 +147,8 @@ def continuous_run():
             pass
         except Exception as e:
             print('ERROR MOFO ', e)
+            time.sleep(10)
+            print('Waiting')
+
 
 # bt.run()
