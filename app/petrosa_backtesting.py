@@ -76,6 +76,9 @@ def run_backtest(symbol, test_period):
     data = get_data.get_data(symbol, '5m')
     main_data = get_data.get_data(symbol, test_period)
 
+    if(len(data) == 0 or len(main_data) == 0):
+        return False
+
     strat = bb_backtest
     strat.main_data = main_data
 
@@ -143,10 +146,15 @@ def continuous_run():
             params, {"$set": {"status": 1}})
 
         logging.warning('Running backtest for simple_gap_finder on: ' + str(params))
-        run_backtest(params['symbol'], params['period'])
+        bt_ret = run_backtest(params['symbol'], params['period'])
+
+        if bt_ret is False:
+            status = -1
+        else:
+            status = 2
 
         client.petrosa_crypto['backtest_controller'].update_one(
-            {"_id": params['_id']}, {"$set": {"status": 2}})
+            {"_id": params['_id']}, {"$set": {"status": status}})
 
         logging.warning('Finished ' + str(params))
 
