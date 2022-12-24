@@ -15,6 +15,13 @@ COPY . ./
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install newrelic
 
+
+ENV NEW_RELIC_APP_NAME=petrosa-strategy-gapfinder-backtesting
+ENV NEW_RELIC_DISTRIBUTED_TRACING_ENABLED=true
+ENV NEW_RELIC_MONITOR_MODE=true
+# ENV NEW_RELIC_LOG_LEVEL=debug
+ENV NEW_RELIC_LOG=/tmp/newrelic.log
+
 # Run the web service on container startup. Here we use the gunicorn
 # webserver, with one worker process and 8 threads.
 # For environments with multiple CPU cores, increase the number of workers

@@ -29,6 +29,9 @@ def get_data(ticker, period, limit=999999999):
                            sort=[('datetime', -1)]).limit(limit)
     results_list = list(results)
 
+    if (len(results_list) == 0):
+        return []
+
     data_df = pd.DataFrame(results_list)
 
     data_df = data_df.sort_values("datetime")
