@@ -20,14 +20,14 @@ spec:
         imagePullPolicy: Always
         resources:
           limits:
-            memory: 2G
+            # memory: 2G
             cpu: 1
           requests:
             cpu: 200m
             memory: 200m
         env:
           - name: VERSION
-            value: "0.0.5"
+            value: "0.0.6"
           - name: MONGO_URI
             valueFrom:
               secretKeyRef:
