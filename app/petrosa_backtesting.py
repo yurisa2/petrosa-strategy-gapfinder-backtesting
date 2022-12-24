@@ -1,12 +1,15 @@
-from backtesting import Strategy, Backtest
-from app import get_data
-import numpy as np
-from backtesting.lib import plot_heatmaps
-import pymongo
 import os
 import json
 import datetime
 import time
+import logging 
+import numpy as np
+import pymongo
+from backtesting import Strategy, Backtest
+from app import get_data
+from backtesting.lib import plot_heatmaps
+import newrelic.agent
+
 
 
 class bb_backtest(Strategy):
@@ -22,6 +25,8 @@ class bb_backtest(Strategy):
     def init(self):
         pass
 
+
+    @newrelic.agent.background_task()
     def next(self):
 
         if (
@@ -65,6 +70,7 @@ class bb_backtest(Strategy):
             pass
 
 
+@newrelic.agent.background_task()
 def run_backtest(symbol, test_period):
 
     data = get_data.get_data(symbol, '5m')
@@ -122,6 +128,7 @@ def run_backtest(symbol, test_period):
                                              }, {"$set": doc}, upsert=True)
 
 
+@newrelic.agent.background_task()
 def continuous_run():
     client = pymongo.MongoClient(
                 os.getenv(
@@ -129,26 +136,23 @@ def continuous_run():
                 readPreference='secondaryPreferred',
                 appname='petrosa-strategy-backtest-simple-gap-finder'
                                         )
-    while True:
-        try:
-            params = client.petrosa_crypto['backtest_controller'].find_one(
-                {"status": 0, "strategy": "simple_gap_finder"})
-            client.petrosa_crypto['backtest_controller'].update_one(
-                params, {"$set": {"status": 1}})
+    try:
+        params = client.petrosa_crypto['backtest_controller'].find_one(
+            {"status": 0, "strategy": "simple_gap_finder"})
+        client.petrosa_crypto['backtest_controller'].update_one(
+            params, {"$set": {"status": 1}})
 
-            print('Running backtest for simple_gap_finder on: ', params)
-            run_backtest(params['symbol'], params['period'])
+        logging.warning('Running backtest for simple_gap_finder on: ' + str(params))
+        run_backtest(params['symbol'], params['period'])
 
-            client.petrosa_crypto['backtest_controller'].update_one(
-                {"_id": params['_id']}, {"$set": {"status": 2}})
+        client.petrosa_crypto['backtest_controller'].update_one(
+            {"_id": params['_id']}, {"$set": {"status": 2}})
 
-            print('Finished ', params)
+        logging.warning('Finished ' + str(params))
 
-            pass
-        except Exception as e:
-            print('ERROR MOFO ', e)
-            time.sleep(10)
-            print('Waiting')
-
+        pass
+    except Exception as e:
+        logging.error(e)
+        time.sleep(10)
 
 # bt.run()

@@ -1,8 +1,10 @@
 import pymongo
 import pandas as pd
 import os
+import newrelic.agent
 
 
+@newrelic.agent.background_task()
 def get_data(ticker, period, limit=999999999):
 
     if(period == '5m'):

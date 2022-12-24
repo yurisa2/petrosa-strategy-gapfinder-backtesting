@@ -18,14 +18,25 @@ spec:
       - name: petrosa-strategy-gapfinder-backtesting
         image: yurisa2/petrosa-strategy-gapfinder-backtesting:latest
         imagePullPolicy: Always
-        ports:
-        - containerPort: 8080
+        resources:
+          limits:
+            memory: 2G
+            cpu: 1
+          requests:
+            cpu: 200m
+            memory: 200m
         env:
           - name: VERSION
-            value: "0.0.2"
+            value: "0.0.3"
           - name: MONGO_URI
             valueFrom:
               secretKeyRef:
                 name: petrosa-apps-secret
                 key: MONGO_URI
+                optional: false
+          - name: NEW_RELIC_LICENSE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: petrosa-apps-secret
+                key: NEW_RELIC_LICENSE_KEY
                 optional: false
