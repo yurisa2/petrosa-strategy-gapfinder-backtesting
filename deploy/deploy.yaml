@@ -1,11 +1,12 @@
 apiVersion: apps/v1
-kind: DaemonSet
+kind: Deployment
 metadata:
   name: petrosa-strategy-gapfinder-backtesting-deploy
   namespace: petrosa-apps
   labels:
     app: petrosa-strategy-gapfinder-backtesting-app
 spec:
+  replicas: 1
   selector:
     matchLabels:
       app: petrosa-strategy-gapfinder-backtesting
@@ -20,14 +21,23 @@ spec:
         imagePullPolicy: Always
         resources:
           limits:
-            # memory: 2G
-            cpu: 300m
+            memory: 10G
+            cpu: 6
           requests:
             cpu: 200m
             memory: 200m
+      affinity:
+        Node affinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - notebook                                   
         env:
           - name: VERSION
-            value: "0.0.8"
+            value: "0.0.9"
           - name: MONGO_URI
             valueFrom:
               secretKeyRef:
