@@ -15,6 +15,7 @@ spec:
       labels:
         app: petrosa-strategy-gapfinder-backtesting
     spec:
+      nodeName: k3os-18256
       containers:
       - name: petrosa-strategy-gapfinder-backtesting
         image: yurisa2/petrosa-strategy-gapfinder-backtesting:latest
@@ -25,16 +26,7 @@ spec:
             cpu: 6
           requests:
             cpu: 200m
-            memory: 200m
-      affinity:
-        Node affinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: app
-                operator: In
-                values:
-                - notebook                                   
+            memory: 200m                            
         env:
           - name: VERSION
             value: "0.0.9"
