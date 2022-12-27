@@ -6,12 +6,10 @@ import random
 import logging
 
 
-logging.warning('We are starting this')
+logging.warning('starting petrosa-strategy-gapfinder-backtesting | ver.: ' + 
+                os.environ.get('VERSION'))
 
 time.sleep(random.randint(1,150))
-
-
-
 
 while True:
     petrosa_backtesting.continuous_run()

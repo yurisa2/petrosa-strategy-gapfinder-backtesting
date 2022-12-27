@@ -54,11 +54,17 @@ class bb_backtest(Strategy):
 
                 # print(self.data.index[-1])
                 diff = ((work_data.Close[-1] / work_data.Close[-2])-1)*100
-                if diff < 0 and diff > (1 * self.buy_threshold) and self.buy_enabled:
+                
+                if (diff < 0 and 
+                    diff > (1 * self.buy_threshold) and 
+                    self.buy_enabled):
                     buy_sl = work_data.Close[-1] * (1 - (self.buy_sl / 100))
                     buy_tp = work_data.Close[-1] * (1 + (self.buy_tp / 100))
                     self.buy(sl=buy_sl, tp=buy_tp)
-                if diff > 0 and diff > self.sell_threshold and self.sell_enabled:
+                
+                if (diff > 0 and 
+                    diff > self.sell_threshold and 
+                    self.sell_enabled):
                     sell_sl = work_data.Close[-1] * (1 + (self.sell_sl / 100))
                     sell_tp = work_data.Close[-1] * (1 - (self.sell_tp / 100))
                     self.sell(sl=sell_sl, tp=sell_tp)
@@ -90,12 +96,12 @@ def run_backtest(symbol, test_period):
                     cash=100000)
 
     stats, heatmap = bt.optimize(
-        buy_sl=list(np.arange(0.2, 2, 1)),
-        buy_tp=list(np.arange(0.2, 2, 1)),
-        sell_sl=list(np.arange(0.2, 2, 1)),
-        sell_tp=list(np.arange(0.2, 2, 1)),
-        buy_threshold=list(np.arange(0.5, 2, 0.2)),
-        sell_threshold=list(np.arange(0.5, 2, 0.2)),
+        buy_sl=list(np.arange(0.2, 2, 0.2)),
+        buy_tp=list(np.arange(0.4, 2, 0.4)),
+        sell_sl=list(np.arange(0.2, 2, 0.2)),
+        sell_tp=list(np.arange(0.4, 2, 0.4)),
+        buy_threshold=list(np.arange(1, 2, 0.2)),
+        sell_threshold=list(np.arange(1, 2, 0.2)),
         # sell_enabled=[True, False],
         # buy_enabled=[True, False],
         maximize='SQN',
@@ -145,7 +151,8 @@ def continuous_run():
         client.petrosa_crypto['backtest_controller'].update_one(
             params, {"$set": {"status": 1}})
 
-        logging.warning('Running backtest for simple_gap_finder on: ' + str(params))
+        logging.warning('Running backtest for simple_gap_finder on: ' + 
+                        str(params))
         bt_ret = run_backtest(params['symbol'], params['period'])
 
         if bt_ret is False:
