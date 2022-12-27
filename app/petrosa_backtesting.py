@@ -42,7 +42,7 @@ class bb_backtest(Strategy):
             return True
 
         if(self.buy_sl > self.buy_tp
-                or self.sell_sl > self.sell_tp):
+                or self.sell_sl > self.sell_tp): # should be done via constraints
             return True
 
         try:
@@ -54,11 +54,11 @@ class bb_backtest(Strategy):
 
                 # print(self.data.index[-1])
                 diff = ((work_data.Close[-1] / work_data.Close[-2])-1)*100
-                if diff > (-1 * self.sell_threshold) and self.sell_enabled:
+                if diff < 0 and diff > (1 * self.buy_threshold) and self.buy_enabled:
                     buy_sl = work_data.Close[-1] * (1 - (self.buy_sl / 100))
                     buy_tp = work_data.Close[-1] * (1 + (self.buy_tp / 100))
                     self.buy(sl=buy_sl, tp=buy_tp)
-                if diff < self.buy_threshold and self.buy_enabled:
+                if diff > 0 and diff > self.sell_threshold and self.sell_enabled:
                     sell_sl = work_data.Close[-1] * (1 + (self.sell_sl / 100))
                     sell_tp = work_data.Close[-1] * (1 - (self.sell_tp / 100))
                     self.sell(sl=sell_sl, tp=sell_tp)
@@ -94,8 +94,8 @@ def run_backtest(symbol, test_period):
         buy_tp=list(np.arange(0.2, 2, 1)),
         sell_sl=list(np.arange(0.2, 2, 1)),
         sell_tp=list(np.arange(0.2, 2, 1)),
-        buy_threshold=list(np.arange(0.2, 1, 1)),
-        sell_threshold=list(np.arange(0.2, 1, 1)),
+        buy_threshold=list(np.arange(0.5, 2, 0.2)),
+        sell_threshold=list(np.arange(0.5, 2, 0.2)),
         # sell_enabled=[True, False],
         # buy_enabled=[True, False],
         maximize='SQN',
