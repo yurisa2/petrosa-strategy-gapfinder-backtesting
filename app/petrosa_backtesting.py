@@ -96,12 +96,12 @@ def run_backtest(symbol, test_period):
                     cash=100000)
 
     stats, heatmap = bt.optimize(
-        buy_sl=list(np.arange(0.2, 2, 0.2)),
-        buy_tp=list(np.arange(0.4, 2, 0.4)),
-        sell_sl=list(np.arange(0.2, 2, 0.2)),
-        sell_tp=list(np.arange(0.4, 2, 0.4)),
-        buy_threshold=list(np.arange(1, 2, 0.2)),
-        sell_threshold=list(np.arange(1, 2, 0.2)),
+        buy_sl=list(np.arange(1, 3, 0.3)),
+        buy_tp=list(np.arange(1, 4, 0.3)),
+        sell_sl=list(np.arange(1, 3, 0.3)),
+        sell_tp=list(np.arange(1, 4, 0.3)),
+        buy_threshold=list(np.arange(1, 5, 0.5)),
+        sell_threshold=list(np.arange(1, 5, 0.5)),
         # sell_enabled=[True, False],
         # buy_enabled=[True, False],
         maximize='SQN',
