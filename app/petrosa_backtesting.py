@@ -9,7 +9,7 @@ from backtesting import Strategy, Backtest
 from app import get_data
 from backtesting.lib import plot_heatmaps
 import newrelic.agent
-
+import datetime
 
 
 class bb_backtest(Strategy):
@@ -22,7 +22,7 @@ class bb_backtest(Strategy):
     sell_enabled = True
     buy_enabled = True
 
-    def init(self):
+    def init(self) -> None:
         pass
 
 
@@ -79,8 +79,8 @@ class bb_backtest(Strategy):
 @newrelic.agent.background_task()
 def run_backtest(symbol, test_period):
 
-    data = get_data.get_data(symbol, '5m')
-    main_data = get_data.get_data(symbol, test_period)
+    data = get_data.get_data(symbol, '5m', limit=20000)
+    main_data = get_data.get_data(symbol, test_period=1000)
 
     if(len(data) == 0 or len(main_data) == 0):
         return False
@@ -138,7 +138,7 @@ def run_backtest(symbol, test_period):
 
 
 @newrelic.agent.background_task()
-def continuous_run():
+def continuous_run() -> None:
     client = pymongo.MongoClient(
                 os.getenv(
                     'MONGO_URI', 'mongodb://root:QnjfRW7nl6@localhost:27017'),
@@ -146,8 +146,9 @@ def continuous_run():
                 appname='petrosa-strategy-backtest-simple-gap-finder'
                                         )
     try:
-        params = client.petrosa_crypto['backtest_controller'].find_one(
-            {"status": 0, "strategy": "simple_gap_finder"})
+        params = client.petrosa_crypto['backtest_controller'].aggregate([{ "$sample": { "size": 1 } }])
+        params = list(params)[0]
+        
         client.petrosa_crypto['backtest_controller'].update_one(
             params, {"$set": {"status": 1}})
 
