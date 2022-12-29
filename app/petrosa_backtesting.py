@@ -80,7 +80,7 @@ class bb_backtest(Strategy):
 def run_backtest(symbol, test_period):
 
     data = get_data.get_data(symbol, '5m', limit=20000)
-    main_data = get_data.get_data(symbol, limit=1000)
+    main_data = get_data.get_data(symbol, test_period, limit=1000)
 
     if(len(data) == 0 or len(main_data) == 0):
         return False
