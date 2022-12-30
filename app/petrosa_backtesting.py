@@ -79,8 +79,8 @@ class bb_backtest(Strategy):
 @newrelic.agent.background_task()
 def run_backtest(symbol, test_period):
 
-    data = get_data.get_data(symbol, '5m', limit=20000)
-    main_data = get_data.get_data(symbol, test_period, limit=1000)
+    data = get_data.get_data(symbol, '5m', limit=40000)
+    main_data = get_data.get_data(symbol, test_period, limit=2000)
 
     if(len(data) == 0 or len(main_data) == 0):
         return False
@@ -100,8 +100,8 @@ def run_backtest(symbol, test_period):
         buy_tp=list(np.arange(1, 4, 0.5)),
         sell_sl=list(np.arange(1, 3, 0.5)),
         sell_tp=list(np.arange(1, 4, 0.5)),
-        buy_threshold=list(np.arange(0.5, 2, 0.5)),
-        sell_threshold=list(np.arange(0.5, 2, 0.5)),
+        buy_threshold=list(np.arange(1, 3, 0.5)),
+        sell_threshold=list(np.arange(1, 3, 0.5)),
         # sell_enabled=[True, False],
         # buy_enabled=[True, False],
         maximize='SQN',
@@ -149,8 +149,19 @@ def continuous_run() -> None:
         params = client.petrosa_crypto['backtest_controller'].find(
             {"status": 0, "strategy": "simple_gap_finder"})
         params = list(params)
-        params = params[random.randint(0, len(params))]
 
+        if len(params) == 0:
+            params = client.petrosa_crypto['backtest_controller'].find(
+                {"status": 1, "strategy": "simple_gap_finder"})
+            params = list(params)
+
+ 
+        if len(params) == 0:
+            params = client.petrosa_crypto['backtest_controller'].find(
+                {"strategy": "simple_gap_finder"})   
+            params = list(params)
+        
+        params = params[random.randint(0, len(params))]
 
         client.petrosa_crypto['backtest_controller'].update_one(
             params, {"$set": {"status": 1}})
