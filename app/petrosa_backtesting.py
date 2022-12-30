@@ -10,7 +10,7 @@ from app import get_data
 from backtesting.lib import plot_heatmaps
 import newrelic.agent
 import datetime
-
+import random
 
 class bb_backtest(Strategy):
     buy_sl = None
@@ -146,9 +146,12 @@ def continuous_run() -> None:
                 appname='petrosa-strategy-backtest-simple-gap-finder'
                                         )
     try:
-        params = client.petrosa_crypto['backtest_controller'].aggregate([{ "$sample": { "size": 1 } }])
-        params = list(params)[0]
-        
+        params = client.petrosa_crypto['backtest_controller'].find(
+            {"status": 0, "strategy": "simple_gap_finder"})
+        params = list(params)
+        params = params[random.randint(0, len(params))]
+
+
         client.petrosa_crypto['backtest_controller'].update_one(
             params, {"$set": {"status": 1}})
 
