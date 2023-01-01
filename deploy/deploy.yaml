@@ -23,13 +23,13 @@ spec:
         resources:
           limits:
             memory: 10G
-            cpu: 6
+            cpu: 2
           requests:
             cpu: 200m
             memory: 200m                            
         env:
           - name: VERSION
-            value: "0.0.19"
+            value: "0.0.20"
           - name: MONGO_URI
             valueFrom:
               secretKeyRef:
