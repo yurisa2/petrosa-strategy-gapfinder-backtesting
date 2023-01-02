@@ -29,7 +29,7 @@ spec:
             memory: 200m                            
         env:
           - name: VERSION
-            value: "0.0.21"
+            value: "0.0.22"
           - name: MONGO_URI
             valueFrom:
               secretKeyRef:

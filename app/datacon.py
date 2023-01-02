@@ -8,6 +8,19 @@ import pymongo
 
 
 @newrelic.agent.background_task()
+def get_client():
+    client = pymongo.MongoClient(
+        os.getenv(
+            'MONGO_URI', 'mongodb://root:QnjfRW7nl6@localhost:27017'),
+        readPreference='secondaryPreferred',
+        appname='petrosa-nosql-crypto'
+    )
+    
+    return client
+
+
+
+@newrelic.agent.background_task()
 def get_data(ticker, period, limit=999999999):
 
     if(period == '5m'):
@@ -21,12 +34,7 @@ def get_data(ticker, period, limit=999999999):
     else:
         suffix = ''
 
-    client = pymongo.MongoClient(
-                os.getenv(
-                    'MONGO_URI', 'mongodb://root:QnjfRW7nl6@localhost:27017'),
-                readPreference='secondaryPreferred',
-                appname='petrosa-nosql-crypto'
-                                        )
+    client = get_client()
     db = client["petrosa_crypto"]
     history = db["candles_" + suffix]
 
@@ -54,12 +62,7 @@ def get_data(ticker, period, limit=999999999):
 
 @newrelic.agent.background_task()
 def find_params():
-    client = pymongo.MongoClient(
-        os.getenv(
-            'MONGO_URI', 'mongodb://root:QnjfRW7nl6@localhost:27017'),
-        readPreference='secondaryPreferred',
-        appname='petrosa-strategy-backtest-simple-gap-finder'
-    )
+    client = get_client()
     try:
         params = client.petrosa_crypto['backtest_controller'].find(
             {"status": 0, "strategy": "simple_gap_finder"})
@@ -94,12 +97,7 @@ def find_params():
 
 @newrelic.agent.background_task()
 def update_status(params, status):
-    client = pymongo.MongoClient(
-        os.getenv(
-            'MONGO_URI', 'mongodb://root:QnjfRW7nl6@localhost:27017'),
-        readPreference='secondaryPreferred',
-        appname='petrosa-strategy-backtest-simple-gap-finder'
-    )
+    client = get_client()
 
     client.petrosa_crypto['backtest_controller'].update_one(
         {"_id": params['_id']}, {"$set": {"status": status}})
@@ -109,12 +107,7 @@ def update_status(params, status):
 
 @newrelic.agent.background_task()
 def post_results(symbol, test_period, doc):
-    client = pymongo.MongoClient(
-        os.getenv(
-            'MONGO_URI', 'mongodb://root:QnjfRW7nl6@localhost:27017'),
-        readPreference='secondaryPreferred',
-        appname='petrosa-strategy-backtest-simple-gap-finder'
-    )
+    client = get_client()
 
     client.petrosa_crypto['backtest_results'].update_one(
                                                 {"strategy": "simple_gap_finder",
