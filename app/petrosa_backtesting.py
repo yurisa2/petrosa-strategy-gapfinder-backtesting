@@ -1,16 +1,14 @@
-import os
+import datetime
 import json
-import datetime
+import logging
 import time
-import logging 
-import numpy as np
-import pymongo
-from backtesting import Strategy, Backtest
-from app import get_data
-from backtesting.lib import plot_heatmaps
+
 import newrelic.agent
-import datetime
-import random
+import numpy as np
+from backtesting import Backtest, Strategy
+
+from app import datacon
+
 
 class bb_backtest(Strategy):
     buy_sl = None
@@ -79,8 +77,8 @@ class bb_backtest(Strategy):
 @newrelic.agent.background_task()
 def run_backtest(symbol, test_period):
 
-    data = get_data.get_data(symbol, '5m', limit=40000)
-    main_data = get_data.get_data(symbol, test_period, limit=2000)
+    data = datacon.get_data(symbol, '5m', limit=40000)
+    main_data = datacon.get_data(symbol, test_period, limit=2000)
 
     if(len(data) == 0 or len(main_data) == 0):
         return False
@@ -95,94 +93,49 @@ def run_backtest(symbol, test_period):
                     exclusive_orders=True,
                     cash=100000)
 
-    stats, heatmap = bt.optimize(
+    stats = bt.optimize(
         buy_sl=list(np.arange(1, 3, 0.5)),
         buy_tp=list(np.arange(1, 4, 0.5)),
         sell_sl=list(np.arange(1, 3, 0.5)),
         sell_tp=list(np.arange(1, 4, 0.5)),
         buy_threshold=list(np.arange(1, 3, 0.5)),
         sell_threshold=list(np.arange(1, 3, 0.5)),
-        # sell_enabled=[True, False],
-        # buy_enabled=[True, False],
         maximize='SQN',
         # minimize='Max. Drawdown [%]',
         max_tries=200,
         random_state=0,
-        return_heatmap=True)
-    # plot_heatmaps(heatmap, agg='mean')
+        return_heatmap=False)
 
-    client = pymongo.MongoClient(
-                os.getenv(
-                    'MONGO_URI', 'mongodb://root:QnjfRW7nl6@localhost:27017'),
-                readPreference='secondaryPreferred',
-                appname='petrosa-strategy-backtest-simple-gap-finder'
-                                        )
-
-    heatmap = heatmap.dropna().sort_values().iloc[-10:]
     new_hm = {}
-    new_hm['heatmap'] = heatmap
     new_hm['insert_timestamp'] = datetime.datetime.now()
     new_hm['strategy'] = 'simple_gap_finder'
     new_hm['period'] = test_period
     new_hm['symbol'] = symbol
 
     doc = json.dumps({**stats._strategy._params,
-                     ** stats, **new_hm}, default=str)
+                     **stats, **new_hm}, default=str)
     doc = json.loads(doc)
-
-    client.petrosa_crypto['backtest_results'].update_one(
-                                            {"strategy": "simple_gap_finder",
-                                             "symbol": symbol,
-                                             "period": test_period
-                                             }, {"$set": doc}, upsert=True)
+    
+    datacon.post_results(symbol, test_period,doc)
 
 
 @newrelic.agent.background_task()
-def continuous_run() -> None:
-    client = pymongo.MongoClient(
-                os.getenv(
-                    'MONGO_URI', 'mongodb://root:QnjfRW7nl6@localhost:27017'),
-                readPreference='secondaryPreferred',
-                appname='petrosa-strategy-backtest-simple-gap-finder'
-                                        )
+def continuous_run():
     try:
-        params = client.petrosa_crypto['backtest_controller'].find(
-            {"status": 0, "strategy": "simple_gap_finder"})
-        params = list(params)
-
-        if len(params) == 0:
-            params = client.petrosa_crypto['backtest_controller'].find(
-                {"status": 1, "strategy": "simple_gap_finder"})
-            params = list(params)
-
- 
-        if len(params) == 0:
-            params = client.petrosa_crypto['backtest_controller'].find(
-                {"strategy": "simple_gap_finder"})   
-            params = list(params)
-        
-        params = params[random.randint(0, len(params))]
-
-        client.petrosa_crypto['backtest_controller'].update_one(
-            params, {"$set": {"status": 1}})
+        params = datacon.find_params()
 
         logging.warning('Running backtest for simple_gap_finder on: ' + 
                         str(params))
         bt_ret = run_backtest(params['symbol'], params['period'])
 
         if bt_ret is False:
-            status = -1
+            datacon.update_status(params=params, status=-1)
         else:
-            status = 2
-
-        client.petrosa_crypto['backtest_controller'].update_one(
-            {"_id": params['_id']}, {"$set": {"status": status}})
-
+            datacon.update_status(params=params, status=2)
         logging.warning('Finished ' + str(params))
 
-        pass
     except Exception as e:
         logging.error(e)
         time.sleep(10)
-
-# bt.run()
+        
+    return True
