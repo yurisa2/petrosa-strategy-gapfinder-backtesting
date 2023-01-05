@@ -107,7 +107,7 @@ def run_backtest(symbol, test_period):
         return_heatmap=False)
 
     new_hm = {}
-    new_hm['insert_timestamp'] = datetime.datetime.now()
+    new_hm['insert_timestamp'] = datetime.datetime.utcnow()
     new_hm['strategy'] = 'simple_gap_finder'
     new_hm['period'] = test_period
     new_hm['symbol'] = symbol
