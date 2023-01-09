@@ -24,7 +24,6 @@ class bb_backtest(Strategy):
         pass
 
 
-    @newrelic.agent.background_task()
     def next(self):
 
         if (
