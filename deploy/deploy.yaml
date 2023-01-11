@@ -18,7 +18,7 @@ spec:
       nodeName: k3os-18256
       containers:
       - name: petrosa-strategy-gapfinder-backtesting
-        image: yurisa2/petrosa-strategy-gapfinder-backtesting:v0.0.25
+        image: yurisa2/petrosa-strategy-gapfinder-backtesting:v0.0.26
         imagePullPolicy: Always
         resources:
           limits:
@@ -29,7 +29,7 @@ spec:
             memory: 200m                            
         env:
           - name: VERSION
-            value: "0.0.25"
+            value: "0.0.26"
           - name: MONGO_URI
             valueFrom:
               secretKeyRef:

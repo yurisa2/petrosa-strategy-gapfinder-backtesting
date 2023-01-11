@@ -110,6 +110,9 @@ def run_backtest(symbol, test_period):
     new_hm['strategy'] = 'simple_gap_finder'
     new_hm['period'] = test_period
     new_hm['symbol'] = symbol
+    new_hm['trades_list'] = stats._trades.to_dict('records')
+    new_hm['equity_curve'] = stats._equity_curve.to_dict('records')
+
 
     doc = json.dumps({**stats._strategy._params,
                      **stats, **new_hm}, default=str)
